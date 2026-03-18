@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Claude Code local memory (not for repo)
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Large data artifacts (regenerable via pipeline)
+data/spec_pdfs/
+data/spec_text/
+
+# Database artifacts are committed so Streamlit Cloud can serve the app.
+# To rebuild locally: python src/embed_and_index.py
+# db/
+
+# App runtime logs (regenerable)
+data/app/
+logs/
+
+# Stale / superseded files
+data/prepared/bulbrite_products_parsed.csv
+
+# Keep these tracked:
+# - data/prepared/bulbrite_products_prepped.csv (small, needed for reproducibility)
+# - data/prepared/bulbrite_products_parsed_v2.csv (canonical parsed output)
+# - data/chunks/ (JSONL, reasonable size)
+# - data/eval/ (test questions + results)
+# - config/ (alias maps)
+# - src/ (all pipeline scripts)
+# - prompts/ (prompt templates when created)

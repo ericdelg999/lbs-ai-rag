@@ -1,0 +1,21 @@
+question_id,query_type,question,target_sku,expected_fact,expected_fact_field,required_constraints,forbidden_values,notes
+Q001,sku_lookup,What color temperature is SKU 776218?,776218,2700K,color_temperature,,,Decorative G25 globe LED
+Q002,sku_lookup,What finish does SKU 776201 have?,776201,Clear,finish,,,B11 candelabra LED candle
+Q003,sku_lookup,What voltage is SKU 771102?,771102,12V,voltage,,,MR16 low-voltage LED
+Q004,sku_lookup,What base type does SKU 770597 use?,770597,G9,base_type,,,G9 miniature LED
+Q005,sku_lookup,What base type does SKU 610500 use?,610500,E11,base_type,,,T4 JD halogen mini bulb
+Q006,sku_lookup,How many lumens does SKU 770650 output?,770650,140,lumens,,,G4 low-voltage miniature LED
+Q007,sku_lookup,What base type does SKU 771218 use?,771218,GU10,base_type,,,PAR16 GU10 LED
+Q008,sku_lookup,What finish does SKU 772253 have?,772253,White,finish,,,PAR38 flood LED
+Q009,sku_lookup,What type of product is SKU 773275?,773275,Integrated LED,bulb_or_fixture_type,,,Integrated round disc fixture
+Q010,sku_lookup,How many lumens does SKU 774286 output?,774286,450,lumens,,,Non-dimmable A19 LED
+Q011,spec_suggestion,I need a dimmable LED A19 bulb with an E26 base around 800 lumens and 3000K.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26"", ""shape"": ""A19"", ""color_temperature"": 3000, ""lumens_min"": 750, ""lumens_max"": 850}","[""E12"", ""No""]",General service A19 LED
+Q012,spec_suggestion,What's a good 3000K dimmable PAR30 flood with an E26 base?,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26"", ""shape_in"": [""PAR30S"", ""PAR30L""], ""color_temperature"": 3000}","[""GU10"", ""E12""]",PAR30 reflector flood
+Q013,spec_suggestion,Do you have a dimmable PAR38 flood around 3000K?,,,,,"{""dimmable"": ""Yes"", ""shape"": ""PAR38"", ""color_temperature"": 3000}","[""GU10""]",PAR38 reflector flood
+Q014,spec_suggestion,Find me a dimmable GU10 LED bulb around 500 lumens.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""GU10"", ""lumens_min"": 400, ""lumens_max"": 550}","[""E26"", ""E12""]",GU10 directional lamp
+Q015,spec_suggestion,I need a 12V dimmable MR16 spotlight around 500 lumens.,,,,,"{""dimmable"": ""Yes"", ""shape"": ""MR16"", ""base_type"": ""GU5.3"", ""voltage"": 12, ""lumens_min"": 450, ""lumens_max"": 600}","[""120V""]",Low-voltage MR16
+Q016,spec_suggestion,Find me a decorative LED candle bulb with an E12 base around 3000K.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E12"", ""shape"": ""B11"", ""color_temperature"": 3000}","[""E26"", ""A19""]",Decorative candelabra lamp
+Q017,spec_suggestion,I need a low-voltage G4 mini bulb under 3 watts.,,,,,"{""base_type"": ""G4"", ""voltage"": 12, ""wattage_max"": 3}","[""120V"", ""GU10""]",Low-watt miniature lamp
+Q018,spec_suggestion,Show me a dimmable G9 mini bulb around 300 lumens.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""G9"", ""lumens_min"": 250, ""lumens_max"": 350}","[""E12"", ""GU10""]",G9 miniature LED
+Q019,spec_suggestion,Find me an integrated LED round disc light around 1100 lumens and 3000K.,,,,,"{""bulb_or_fixture_type"": ""Integrated LED"", ""shape_contains"": ""Round Disc"", ""color_temperature"": 3000, ""lumens_min"": 1000, ""lumens_max"": 1150}","[""B11"", ""G25""]",Integrated round disc fixture
+Q020,spec_suggestion,I need a non-dimmable A19 LED with an E26 base around 450 lumens.,,,,,"{""dimmable"": ""No"", ""shape"": ""A19"", ""base_type"": ""E26"", ""lumens_min"": 400, ""lumens_max"": 500}","[""Yes"", ""E12""]",Non-dimmable general service lamp

@@ -1,0 +1,9 @@
+# App runtime dependencies (used by Streamlit Cloud)
+streamlit==1.55.0
+openai==2.9.0
+chromadb==1.5.5
+httpx==0.28.1
+python-dotenv==1.0.1
+
+# For local pipeline scripts (steps 1-6), also install:
+#   pip install -r requirements_pipeline.txt

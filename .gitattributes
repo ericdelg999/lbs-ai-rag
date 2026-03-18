@@ -1,0 +1,23 @@
+# Normalize line endings for text files
+* text=auto
+
+# Python and config files — always LF
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+*.jsonl text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+
+# Binary files — never convert
+*.bin binary
+*.pickle binary
+*.sqlite binary
+*.sqlite3 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary

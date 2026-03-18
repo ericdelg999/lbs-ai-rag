@@ -1,0 +1,24 @@
+{
+  "default": {
+    "wattage": ["Wattage", "Watts", "Watt"],
+    "lumens": ["Lumens", "Lumen"],
+    "voltage": ["Voltage", "Volt", "Volts"],
+    "color_temperature": ["Color Temperature", "Colour Temperature", "CCT"],
+    "color_temperature_range": ["CCT Range"],
+    "base": ["Base", "Base Type", "Socket", "Base Size"],
+    "shape": ["Shape", "Bulb Shape"],
+    "size": ["Size"],
+    "dimmable": ["Dimmable"],
+    "finish": ["Finish", "Fixture Finish"],
+    "color": ["Color"],
+    "pack": ["Pack", "Pack Qty", "Pack Quantity", "Case Qty", "Case Quantity"],
+    "fixture_type": ["Lighting Technology", "Product Type", "Bulb Type", "Technology"]
+  },
+  "brands": {
+    "bulbrite": {
+      "base": ["Base", "Base Type"],
+      "color_temperature": ["Color Temperature"],
+      "color_temperature_range": ["CCT Range"]
+    }
+  }
+}
