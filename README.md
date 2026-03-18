@@ -33,8 +33,8 @@ pip install -r requirements.txt
 # pip install -r requirements_pipeline.txt
 
 # 4. Configure environment
-copy .env.example .env
-# Edit .env with your OpenAI API key and local tool paths
+# Create a .env file with your OpenAI API key:
+# OPENAI_API_KEY=sk-...
 ```
 
 ## Running the App
@@ -69,7 +69,7 @@ The system is built as a sequential pipeline. Each script reads the output of th
 All scripts use CLI args with sensible defaults:
 
 ```bash
-python src/export_prep.py --input "Bulbrite - AI RAG Schema Test.csv" --brand Bulbrite
+python src/export_prep.py --input "your_export.csv" --brand Bulbrite
 python src/parse_custom_fields.py
 python src/download_spec_sheets.py
 python src/extract_spec_text.py
@@ -90,12 +90,9 @@ Use `--help` on any script for full argument details.
 │   ├── spec_text/          # Extracted text + JSON metadata (not tracked -- regenerate via step 4)
 │   ├── chunks/             # Chunk JSONL (tracked)
 │   └── eval/               # Test questions + eval results (tracked)
-├── db/                     # ChromaDB + SQLite (not tracked -- regenerate via step 6)
-├── prompts/                # LLM prompt templates (when created)
-├── AGENTS.md               # Multi-agent collaboration protocol
-├── PROJECT_BRAIN.md        # Living project status and decisions
-├── requirements.txt        # Python dependencies
-└── .env.example            # Environment variable template
+├── db/                     # ChromaDB + SQLite (committed for Streamlit Cloud)
+├── requirements.txt        # App runtime dependencies
+└── requirements_pipeline.txt  # Full pipeline dependencies (local dev)
 ```
 
 ## Tech Stack (POC)
@@ -128,8 +125,3 @@ When facts conflict across sources, trust in this order:
 3. Product description
 4. H1/title
 
-## Project Docs
-
-- [PRD + Tech Spec](AI%20Product%20Query%20POC%20Concept%20and%20PRD.txt) -- Full requirements and architecture
-- [PROJECT_BRAIN.md](PROJECT_BRAIN.md) -- Living project status, decisions, and backlog
-- [AGENTS.md](AGENTS.md) -- Multi-agent workflow protocol

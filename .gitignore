@@ -48,11 +48,16 @@ logs/
 # Stale / superseded files
 data/prepared/bulbrite_products_parsed.csv
 
-# Keep these tracked:
-# - data/prepared/bulbrite_products_prepped.csv (small, needed for reproducibility)
-# - data/prepared/bulbrite_products_parsed_v2.csv (canonical parsed output)
-# - data/chunks/ (JSONL, reasonable size)
-# - data/eval/ (test questions + results)
-# - config/ (alias maps)
-# - src/ (all pipeline scripts)
-# - prompts/ (prompt templates when created)
+# Internal agent/project planning docs (not for public repo)
+PROJECT_BRAIN.md
+AGENTS.md
+CLAUDE.md
+docs/
+.env.example
+
+# Reference/legacy scripts
+REFERENCE_AI_upload_script_v2.3.1_toggle.py
+
+# Internal business documents (raw exports, PRD)
+Bulbrite - AI RAG Schema Test.csv
+AI Product Query POC Concept and PRD.txt
