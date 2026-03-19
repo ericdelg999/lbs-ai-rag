@@ -622,6 +622,9 @@ def build_context_package(
         spec_url = product.get("spec_sheet_url", "")
 
         header = f"=== SKU: {sku} ==="
+        finish = product.get("finish") or ""
+        voltage = product.get("voltage")
+        voltage_str = f"{voltage}V" if voltage is not None else "N/A"
         specs = (
             f"Product: {h1}\n"
             f"Wattage: {product.get('wattage', 'N/A')} | "
@@ -629,7 +632,10 @@ def build_context_package(
             f"CCT: {product.get('color_temperature', 'N/A')}K | "
             f"Base: {product.get('base_type', 'N/A')} | "
             f"Shape: {product.get('shape', 'N/A')} | "
-            f"Dimmable: {product.get('dimmable', 'N/A')}\n"
+            f"Dimmable: {product.get('dimmable', 'N/A')} | "
+            f"Voltage: {voltage_str}"
+            + (f" | Finish: {finish}" if finish else "")
+            + "\n"
             f"Category: {product.get('category', 'N/A')}\n"
             f"PDP: {pdp}\n"
             f"Spec Sheet: {spec_url}"
