@@ -8,6 +8,7 @@ import ast
 import csv
 import json
 import os
+import re
 import sqlite3
 import sys
 from datetime import datetime
@@ -54,6 +55,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=0,
         help="Only run the first N questions (0 = all).",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Skip the first N questions before applying --limit.",
     )
     return parser.parse_args()
 
@@ -214,6 +221,71 @@ def answer_preview(text: str, limit: int = 240) -> str:
     return flat[:limit]
 
 
+def fact_present_for_row(row: Dict[str, str], answer_text: str) -> bool:
+    question_id = (row.get("question_id") or "").strip().upper()
+    answer_norm = normalize_text(answer_text)
+
+    if question_id == "Q031":
+        return any(token in answer_norm for token in ("spring", "accessory", "kit"))
+
+    if question_id == "Q032":
+        return any(token in answer_norm for token in ("25-pack", "25 pack")) or bool(
+            re.search(r"\b25\b", answer_text or "")
+        )
+
+    if question_id == "Q034":
+        has_dollar_amount = bool(re.search(r"\$\s*\d", answer_text or ""))
+        has_graceful_decline = any(
+            token in answer_norm for token in ("not available", "check", "website", "pdp")
+        )
+        return (not has_dollar_amount) and has_graceful_decline
+
+    expected_fact = (row.get("expected_fact") or "").strip()
+    return normalize_text(expected_fact) in answer_norm
+
+
+def judge_prompt_for_lookup(row: Dict[str, str], result: query_service.QueryResult) -> str:
+    question_id = (row.get("question_id") or "").strip().upper()
+    question = row.get("question", "")
+    target_sku = (row.get("target_sku") or "").strip()
+    expected_fact = (row.get("expected_fact") or "").strip()
+    expected_field = (row.get("expected_fact_field") or "").strip()
+
+    if question_id == "Q031":
+        return (
+            "The user asked what SKU 773299 is. The answer should identify it as a kit "
+            "accessory (mounting springs / retrofit springs) and should NOT invent "
+            "wattage, lumens, or other specs that do not apply.\n\n"
+            f"Answer text:\n{result.answer_text}"
+        )
+
+    return (
+        f"Question: {question}\n"
+        f"Target SKU: {target_sku}\n"
+        f"Expected field: {expected_field}\n"
+        f"Expected fact: {expected_fact}\n"
+        f"LLM status: {result.retrieval_meta.get('llm_status', 'unknown')}\n"
+        f"Returned top SKUs: {[item.get('sku', '') for item in result.top_skus]}\n\n"
+        f"Answer text:\n{result.answer_text}"
+    )
+
+
+def judge_prompt_for_edge_case(row: Dict[str, str], result: query_service.QueryResult) -> str:
+    question_id = (row.get("question_id") or "").strip().upper()
+    if question_id == "Q034":
+        return (
+            "The user asked for the price of SKU 774257. The system does not have price data. "
+            "Does the answer correctly state that price is not available without hallucinating a price?\n\n"
+            f"Answer text:\n{result.answer_text}"
+        )
+
+    return (
+        f"Question: {row.get('question', '')}\n"
+        f"Expected behavior: handle the edge case gracefully.\n\n"
+        f"Answer text:\n{result.answer_text}"
+    )
+
+
 def format_product_summary(product: Dict[str, Any]) -> str:
     if not product:
         return "(missing product row)"
@@ -233,22 +305,23 @@ def score_sku_lookup(
     judge_client: OpenAI,
 ) -> Tuple[bool, bool, str, str]:
     target_sku = (row.get("target_sku") or "").strip()
-    expected_fact = (row.get("expected_fact") or "").strip()
-    expected_field = (row.get("expected_fact_field") or "").strip()
     retrieval_hit = any(str(item.get("sku", "")) == target_sku for item in result.top_skus)
-    fact_present = normalize_text(expected_fact) in normalize_text(result.answer_text)
+    fact_present = fact_present_for_row(row, result.answer_text)
 
-    prompt = (
-        f"Question: {row.get('question', '')}\n"
-        f"Target SKU: {target_sku}\n"
-        f"Expected field: {expected_field}\n"
-        f"Expected fact: {expected_fact}\n"
-        f"LLM status: {result.retrieval_meta.get('llm_status', 'unknown')}\n"
-        f"Returned top SKUs: {[item.get('sku', '') for item in result.top_skus]}\n\n"
-        f"Answer text:\n{result.answer_text}"
-    )
+    prompt = judge_prompt_for_lookup(row, result)
     verdict, reason = call_judge(judge_client, prompt)
     return retrieval_hit, fact_present, verdict, reason
+
+
+def score_edge_case(
+    row: Dict[str, str],
+    result: query_service.QueryResult,
+    judge_client: OpenAI,
+) -> Tuple[str, bool, str, str]:
+    fact_present = fact_present_for_row(row, result.answer_text)
+    prompt = judge_prompt_for_edge_case(row, result)
+    verdict, reason = call_judge(judge_client, prompt)
+    return "", fact_present, verdict, reason
 
 
 def score_spec_suggestion(
@@ -312,7 +385,7 @@ def run_eval(
             fact_present: str | bool = ""
             constraint_match_rate = ""
 
-            if query_type == "sku_lookup":
+            if query_type in {"sku_lookup", "custom_field_lookup"}:
                 retrieval_hit, fact_present, verdict, reason = score_sku_lookup(
                     row=row,
                     result=result,
@@ -326,6 +399,12 @@ def run_eval(
                     products_by_sku=products_by_sku,
                 )
                 constraint_match_rate = f"{constraint_match_rate_value:.2f}"
+            elif query_type == "edge_case":
+                retrieval_hit, fact_present, verdict, reason = score_edge_case(
+                    row=row,
+                    result=result,
+                    judge_client=judge_client,
+                )
             else:
                 verdict, reason = "ERROR", f"Unknown query_type: {query_type}"
 
@@ -404,19 +483,22 @@ def print_summary(results: List[Dict[str, Any]], output_path: Path) -> None:
     fail_count = total - pass_count
     llm_generated = sum(1 for row in results if row["llm_status"] == "generated")
 
-    type_a = [row for row in results if row["query_type"] == "sku_lookup"]
-    type_b = [row for row in results if row["query_type"] == "spec_suggestion"]
-    type_a_pass = sum(1 for row in type_a if row["llm_judge_verdict"] == "PASS")
-    type_b_pass = sum(1 for row in type_b if row["llm_judge_verdict"] == "PASS")
-
     elapsed_values = [try_float(row["elapsed_seconds"]) for row in results]
     elapsed_values = [value for value in elapsed_values if value is not None]
     avg_elapsed = sum(elapsed_values) / len(elapsed_values) if elapsed_values else 0.0
 
     print("\n=== EVAL SUMMARY ===")
     print(f"Total: {total} | Pass: {pass_count} | Fail: {fail_count} | LLM generated: {llm_generated}/{total}")
-    print(f"Type A (SKU lookup): {type_a_pass}/{len(type_a)} pass")
-    print(f"Type B (Spec suggestion): {type_b_pass}/{len(type_b)} pass")
+    label_map = {
+        "sku_lookup": "SKU lookup",
+        "custom_field_lookup": "Custom field lookup",
+        "spec_suggestion": "Spec suggestion",
+        "edge_case": "Edge case",
+    }
+    for query_type in sorted({row["query_type"] for row in results}):
+        subset = [row for row in results if row["query_type"] == query_type]
+        subset_pass = sum(1 for row in subset if row["llm_judge_verdict"] == "PASS")
+        print(f"{label_map.get(query_type, query_type)}: {subset_pass}/{len(subset)} pass")
     print(f"Avg elapsed: {avg_elapsed:.1f}s")
     print(f"Results written to: {output_path}")
 
@@ -432,6 +514,8 @@ def main() -> int:
         raise FileNotFoundError(f"SQLite DB not found: {sqlite_path}")
 
     questions = load_questions(questions_path)
+    if args.offset and args.offset > 0:
+        questions = questions[args.offset :]
     if args.limit and args.limit > 0:
         questions = questions[: args.limit]
 

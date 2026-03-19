@@ -1,0 +1,16 @@
+question_id,query_type,question,target_sku,expected_fact,expected_fact_field,required_constraints,forbidden_values,notes
+Q021,custom_field_lookup,What is the CRI of SKU 773109?,773109,80,CRI,,,Custom fields only
+Q022,custom_field_lookup,What is the beam angle for SKU 773275?,773275,110,Beam Angle,,,Custom fields only
+Q023,custom_field_lookup,What is the MOD for SKU 774257?,774257,2.36 in,MOD,,,Custom fields only
+Q024,custom_field_lookup,What warranty does SKU 773602 come with?,773602,5 years,Warranty,,,Custom fields only
+Q025,custom_field_lookup,What is the rated average life of SKU 773604?,773604,50000,Average Hours,,,Custom fields only
+Q026,sku_lookup,What finish does SKU 773275 have?,773275,Black,finish,,,Structured finish fix
+Q027,sku_lookup,What finish does SKU 774257 have?,774257,Frost,finish,,,Structured finish fix
+Q028,sku_lookup,What voltage does SKU 773109 use?,773109,120,voltage,,,Structured voltage fix
+Q029,sku_lookup,What finish does SKU 773602 have?,773602,Nickel,finish,,,Structured finish fix
+Q030,sku_lookup,What finish does SKU 773604 have?,773604,White,finish,,,Structured finish fix
+Q031,sku_lookup,What is SKU 773299?,773299,LED Disc Light Springs,h1,,,Accessory edge case
+Q032,sku_lookup,How many bulbs come in SKU 774257?,774257,25,pack_quantity,,,Pack quantity edge case
+Q033,spec_suggestion,I need a dimmable LED bulb with CRI of 90 or higher and an E26 base,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26""}","[""CRI 80""]",CRI-driven suggestion
+Q034,edge_case,How much does SKU 774257 cost?,,not available,price,,,Graceful price decline
+Q035,spec_suggestion,Find me a warm white dimmable LED with an E12 base and high CRI,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E12""}","[""non-dimmable""]",Multi-attribute suggestion
