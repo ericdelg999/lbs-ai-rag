@@ -647,12 +647,17 @@ def build_context_package(
         spec_text = ""
         for c in chunks:
             if c.get("doc_type") == "sku_record":
-                sku_record_text = c.get("text", "")[:800]
+                sku_record_text = c.get("text", "")[:1500]  # increased from 800
             elif c.get("doc_type") == "spec_sheet":
                 spec_text = c.get("text", "")[:400]
 
-        # If no chunks came from semantic search, still show the product row
+        # Always include custom fields from SQLite (covers all non-normalized attributes;
+        # essential for product types like drivers/fixtures where normalized columns are N/A)
+        custom_fields = product.get("custom_fields_text") or ""
+
         body_parts = [header, specs]
+        if custom_fields:
+            body_parts.append(f"\n[Custom Fields]\n{custom_fields}")
         if sku_record_text:
             body_parts.append(f"\n[Product Data]\n{sku_record_text}")
         if spec_text:
