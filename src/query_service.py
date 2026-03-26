@@ -42,6 +42,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 from dotenv import load_dotenv
 from openai import OpenAI
+from shared_constants import BRAND_SKU_PREFIXES
 
 # File-based logger — captures errors regardless of stdout/Streamlit context.
 _LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
@@ -166,6 +167,21 @@ _SHAPE_RE = re.compile(
     re.I,
 )
 
+_KNOWN_SKU_PREFIXES = tuple(
+    sorted({prefix.upper() for prefix in BRAND_SKU_PREFIXES.values()}, key=len, reverse=True)
+)
+_EXPLICIT_SKU_RE = re.compile(
+    r"\bsku\b(?:\s*(?:#|:|-)\s*|\s+is\s+|\s+)([A-Z0-9-]*\d[A-Z0-9-]*)\b",
+    re.I,
+)
+if _KNOWN_SKU_PREFIXES:
+    _PREFIXED_SKU_RE = re.compile(
+        r"\b(?:%s)[A-Z0-9-]+\b" % "|".join(re.escape(prefix) for prefix in _KNOWN_SKU_PREFIXES),
+        re.I,
+    )
+else:
+    _PREFIXED_SKU_RE = re.compile(r"$^")
+
 # Numeric constraint patterns  (order matters – longer phrases first)
 _NUMERIC_PATTERNS: List[Tuple[str, str, re.Pattern]] = [
     # --- price (extracted but NOT applied as a filter) ---
@@ -274,12 +290,39 @@ def parse_query(raw_query: str) -> Dict[str, Any]:
         "shape": None,
     }
 
-    # --- SKU mentions (6-digit numbers) ---
-    sku_matches = list(re.finditer(r"\b(\d{6})\b", text))
+    # --- SKU mentions (explicit "SKU X", known internal prefixes, 6-digit tokens) ---
+    sku_matches: List[Tuple[int, int, str]] = []
+
+    def _normalize_sku_token(token: str) -> str:
+        cleaned = token.strip().strip(".,:;!?()[]{}").upper()
+        for prefix in _KNOWN_SKU_PREFIXES:
+            if cleaned.startswith(prefix):
+                return cleaned[len(prefix) :]
+        return cleaned
+
+    def _add_sku_matches(matches: List[re.Match[str]], extractor: Any) -> None:
+        for match in matches:
+            start, end = match.span()
+            if any(not (end <= existing_start or start >= existing_end) for existing_start, existing_end, _ in sku_matches):
+                continue
+            sku_value = extractor(match)
+            if sku_value:
+                sku_matches.append((start, end, sku_value))
+
+    _add_sku_matches(list(_EXPLICIT_SKU_RE.finditer(text)), lambda m: _normalize_sku_token(m.group(1)))
+    _add_sku_matches(list(_PREFIXED_SKU_RE.finditer(text)), lambda m: _normalize_sku_token(m.group(0)))
+    _add_sku_matches(list(re.finditer(r"\b(\d{6})\b", text)), lambda m: m.group(1))
+
     if sku_matches:
-        result["sku_mentions"] = [m.group(1) for m in sku_matches]
-        for m in reversed(sku_matches):
-            text = text[: m.start()] + text[m.end() :]
+        seen_skus = set()
+        ordered_skus: List[str] = []
+        for _, _, sku_value in sku_matches:
+            if sku_value not in seen_skus:
+                seen_skus.add(sku_value)
+                ordered_skus.append(sku_value)
+        result["sku_mentions"] = ordered_skus
+        for start, end, _ in reversed(sku_matches):
+            text = text[:start] + text[end:]
 
     # --- dimmable ---
     dim_match = re.search(r"\bdimmable\b", text, re.I)
@@ -416,7 +459,13 @@ def search_fts(
     for sku in sku_mentions:
         try:
             row = conn.execute(
-                "SELECT sku FROM products WHERE sku = ?", (sku,)
+                """
+                SELECT sku
+                FROM products
+                WHERE UPPER(sku) = UPPER(?)
+                   OR UPPER(internal_lbs_sku) = UPPER(?)
+                """,
+                (sku, sku),
             ).fetchone()
             if row:
                 skus.append(row["sku"])
@@ -577,7 +626,7 @@ def merge_and_rank(
     # Gate: if hard constraints exist, exclude SKUs that fail them
     if has_constraints and structured_skus:
         for sku in list(sku_scores.keys()):
-            if sku not in structured_set:
+            if sku not in structured_set and sku not in mentioned_set:
                 sku_scores[sku] = -1.0  # will be filtered out
     # If constraints exist but structured search returned nothing, keep semantic results
     # (the constraints might be too strict or the column might be NULL)
@@ -614,6 +663,21 @@ def build_context_package(
     if not ranked_skus:
         return "(No matching products found in the database.)"
 
+    def _strip_helper_custom_fields(text: str) -> str:
+        if not text:
+            return ""
+        parts = [part.strip() for part in text.split("|")]
+        kept = [part for part in parts if part and not part.startswith("__")]
+        return " | ".join(kept)
+
+    def _trim_sku_record_text(text: str) -> str:
+        if not text:
+            return ""
+        trimmed = text.split("\nDescription:\n", 1)[0]
+        lines = trimmed.splitlines()
+        kept_lines = [line for line in lines if not re.match(r"\s*-\s*__", line)]
+        return "\n".join(kept_lines).strip()
+
     blocks: List[str] = []
     for product in ranked_skus[:max_skus]:
         sku = product.get("sku", "?")
@@ -647,13 +711,13 @@ def build_context_package(
         spec_text = ""
         for c in chunks:
             if c.get("doc_type") == "sku_record":
-                sku_record_text = c.get("text", "")[:1500]  # increased from 800
+                sku_record_text = _trim_sku_record_text(c.get("text", ""))[:1500]
             elif c.get("doc_type") == "spec_sheet":
                 spec_text = c.get("text", "")[:400]
 
         # Always include custom fields from SQLite (covers all non-normalized attributes;
         # essential for product types like drivers/fixtures where normalized columns are N/A)
-        custom_fields = product.get("custom_fields_text") or ""
+        custom_fields = _strip_helper_custom_fields(product.get("custom_fields_text") or "")
 
         body_parts = [header, specs]
         if custom_fields:

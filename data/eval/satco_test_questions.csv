@@ -1,0 +1,21 @@
+question_id,query_type,question,target_sku,expected_fact,expected_fact_field,required_constraints,forbidden_values,notes
+Q001,sku_lookup,What color temperature is SKU 65-171?,65-171,3000K,color_temperature,,,Dashed Satco SKU exact lookup
+Q002,sku_lookup,Is SKU 65-171 dimmable?,65-171,No,dimmable,,,Dashed Satco SKU exact lookup
+Q003,sku_lookup,What base type does SKU S9704 use?,S9704,E26,base_type,,,A19 LED bulb
+Q004,sku_lookup,How many lumens does SKU S8605 output?,S8605,500,lumens,,,12V MR16 lamp
+Q005,sku_lookup,What voltage is SKU S8605?,S8605,12V,voltage,,,12V MR16 lamp
+Q006,sku_lookup,What finish does SKU S12492 have?,S12492,Clear,finish,,,B11 candelabra LED
+Q007,sku_lookup,What base type does SKU S11233 use?,S11233,G9,base_type,,,G9 T4 LED
+Q008,sku_lookup,What color temperature is SKU S8892?,S8892,4000K,color_temperature,,,4-foot T8 LED tube
+Q009,sku_lookup,How many lumens does SKU S22219 output?,S22219,1000,lumens,,,PAR38 flood lamp
+Q010,sku_lookup,What shape is SKU S9704?,S9704,A19,shape,,,A19 omnidirectional LED
+Q011,custom_field_lookup,What is the CRI of SKU S9704?,S9704,90,CRI,,,Custom field lookup
+Q012,custom_field_lookup,What is the CRI of SKU S12492?,S12492,92,CRI,,,High-CRI candelabra bulb
+Q013,custom_field_lookup,What is the beam angle for SKU S12492?,S12492,300 Degrees,Beam Angle,,,Custom field lookup
+Q014,custom_field_lookup,What is the CRI of SKU 65-171?,65-171,80+,CRI,,,Fixture custom field lookup
+Q015,spec_suggestion,I need a dimmable LED A19 bulb with an E26 base around 800 lumens and 3000K.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26"", ""shape"": ""A19"", ""color_temperature"": 3000, ""lumens_min"": 750, ""lumens_max"": 850}","[""E12"", ""No""]",General service A19 LED
+Q016,spec_suggestion,Find me a dimmable PAR38 flood with an E26 base around 1000 lumens and 3000K.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26"", ""shape"": ""PAR38"", ""color_temperature"": 3000, ""lumens_min"": 950, ""lumens_max"": 1050}","[""GU10"", ""E12""]",PAR38 flood lamp
+Q017,spec_suggestion,I need a 12V dimmable MR16 lamp with a GU5.3 base around 500 lumens.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""GU5.3"", ""shape"": ""MR16"", ""voltage"": 12, ""lumens_min"": 450, ""lumens_max"": 550}","[""120V"", ""GU10""]",Low-voltage MR16 lamp
+Q018,spec_suggestion,Find me a warm white dimmable B11 LED with an E12 base.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E12"", ""shape"": ""B11"", ""color_temperature_in"": [""2700K"", ""3000K""]}","[""E26"", ""No""]",Decorative candelabra lamp
+Q019,spec_suggestion,I need a 4-foot LED T8 tube with a G13 base around 1900 lumens and 4000K.,,,,,"{""base_type"": ""Medium Bi-Pin (G13)"", ""shape"": ""4 ft"", ""color_temperature"": 4000, ""lumens_min"": 1800, ""lumens_max"": 2000}","[""E26"", ""E12""]",Linear LED tube
+Q020,spec_suggestion,Show me a dimmable BR30 bulb with an E26 base around 750 lumens and 3000K.,,,,,"{""dimmable"": ""Yes"", ""base_type"": ""E26"", ""shape"": ""BR30"", ""color_temperature"": 3000, ""lumens_min"": 700, ""lumens_max"": 800}","[""GU10"", ""No""]",BR30 reflector lamp

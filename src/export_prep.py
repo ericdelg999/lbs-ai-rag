@@ -15,6 +15,8 @@ import re
 from pathlib import Path
 from typing import Dict, Iterable
 
+from shared_constants import BRAND_SKU_PREFIXES
+
 
 OUTPUT_FIELDS = [
     "sku",
@@ -118,13 +120,6 @@ def normalize_url(url: str) -> str:
 def normalize_spec_url(spec_url: str) -> str:
     """Normalize the spec sheet URL from the CSV. Returns empty string if not provided."""
     return normalize_url(spec_url)
-
-
-# Maps brand names to known internal_lbs_sku prefixes for fallback matching.
-BRAND_SKU_PREFIXES = {
-    "bulbrite": "BULR-",
-}
-
 
 def row_is_target_brand(brand_value: str, internal_lbs_sku: str, target_brand: str) -> bool:
     brand_text = clean_value(brand_value).lower()

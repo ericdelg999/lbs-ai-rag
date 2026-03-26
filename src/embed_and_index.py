@@ -31,6 +31,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sqlite-path", default="db/products.sqlite", help="Path to SQLite DB file.")
     parser.add_argument("--batch-size", type=int, default=100, help="Embedding API batch size.")
     parser.add_argument("--limit", type=int, default=0, help="Only process first N chunks (0 = all).")
+    parser.add_argument("--append", action="store_true",
+                        help="Append to existing indexes instead of rebuilding from scratch.")
     return parser.parse_args()
 
 
@@ -143,20 +145,34 @@ def batched(items: List[Dict[str, object]], size: int) -> Iterable[List[Dict[str
         yield items[i : i + size]
 
 
-def build_chroma_index(chunks: List[Dict[str, object]], chroma_dir: Path, batch_size: int, openai_client: OpenAI) -> int:
+def build_chroma_index(
+    chunks: List[Dict[str, object]],
+    chroma_dir: Path,
+    batch_size: int,
+    openai_client: OpenAI,
+    append_mode: bool = False,
+) -> int:
     import chromadb
 
     chroma_dir.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(path=str(chroma_dir))
 
-    existing_names = [c.name for c in client.list_collections()]
-    if COLLECTION_NAME in existing_names:
-        existing = client.get_collection(COLLECTION_NAME)
-        count = existing.count()
-        print(f"Deleting existing collection '{COLLECTION_NAME}' ({count} items). Re-indexing from scratch.")
-        client.delete_collection(COLLECTION_NAME)
+    if append_mode:
+        collection = client.get_or_create_collection(
+            name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
+        )
+        before_count = collection.count()
+        print(f"Append mode: existing collection has {before_count} items.")
+    else:
+        existing_names = [c.name for c in client.list_collections()]
+        if COLLECTION_NAME in existing_names:
+            existing = client.get_collection(COLLECTION_NAME)
+            count = existing.count()
+            print(f"Deleting existing collection '{COLLECTION_NAME}' ({count} items). Re-indexing from scratch.")
+            client.delete_collection(COLLECTION_NAME)
+        collection = client.create_collection(name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
 
-    collection = client.create_collection(name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
+    add_fn = collection.upsert if append_mode else collection.add
 
     total = len(chunks)
     batches = (total + batch_size - 1) // batch_size
@@ -170,24 +186,25 @@ def build_chroma_index(chunks: List[Dict[str, object]], chroma_dir: Path, batch_
         print(f"Embedding batch {bi}/{batches} ({indexed + len(batch)}/{total} chunks)")
         embeddings = embed_batch(texts=texts, client=openai_client)
 
-        collection.add(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
+        add_fn(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
         indexed += len(batch)
         time.sleep(0.5)
 
     return collection.count()
 
 
-def build_sqlite_db(csv_path: Path, sqlite_path: Path) -> int:
+def build_sqlite_db(csv_path: Path, sqlite_path: Path, append_mode: bool = False) -> int:
     sqlite_path.parent.mkdir(parents=True, exist_ok=True)
 
     conn = sqlite3.connect(str(sqlite_path))
     try:
-        conn.execute("DROP TABLE IF EXISTS products_fts")
-        conn.execute("DROP TABLE IF EXISTS products")
+        if not append_mode:
+            conn.execute("DROP TABLE IF EXISTS products_fts")
+            conn.execute("DROP TABLE IF EXISTS products")
 
         conn.execute(
             """
-            CREATE TABLE products (
+            CREATE TABLE IF NOT EXISTS products (
                 sku                   TEXT PRIMARY KEY,
                 internal_lbs_sku      TEXT,
                 brand                 TEXT,
@@ -256,7 +273,7 @@ def build_sqlite_db(csv_path: Path, sqlite_path: Path) -> int:
 
             conn.execute(
                 """
-                INSERT INTO products (
+                INSERT OR REPLACE INTO products (
                     sku, internal_lbs_sku, brand, h1, category, upc, pdp_url, spec_sheet_url,
                     wattage, lumens, voltage, color_temperature, base_type, shape, dimmable, finish,
                     pack_qty, bulb_or_fixture_type, minimum_purchase_qty,
@@ -267,6 +284,7 @@ def build_sqlite_db(csv_path: Path, sqlite_path: Path) -> int:
             )
             inserted += 1
 
+        conn.execute("DROP TABLE IF EXISTS products_fts")
         conn.execute(
             """
             CREATE VIRTUAL TABLE products_fts USING fts5(
@@ -345,10 +363,11 @@ def main() -> int:
         chroma_dir=chroma_dir,
         batch_size=args.batch_size,
         openai_client=openai_client,
+        append_mode=args.append,
     )
     print(f"ChromaDB indexed items: {chroma_count}")
 
-    sqlite_count = build_sqlite_db(csv_path=csv_path, sqlite_path=sqlite_path)
+    sqlite_count = build_sqlite_db(csv_path=csv_path, sqlite_path=sqlite_path, append_mode=args.append)
     print(f"SQLite products rows: {sqlite_count}")
 
     print("Embedding + indexing complete.")

@@ -213,6 +213,7 @@ def main() -> int:
         rows = rows[: args.limit]
 
     session = requests.Session()
+    session.trust_env = False
     session.headers.update({
         "User-Agent": "LBS-RAG-SpecDownloader/1.0",
         "Accept": "application/pdf,application/octet-stream,*/*",
