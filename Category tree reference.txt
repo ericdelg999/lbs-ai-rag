@@ -1,0 +1,321 @@
+﻿003A Prompt: LED LAMPS Category v4 MULTI CATEGORIES
+Extract and format data strictly according to the following guidelines. This output is used for API requests, so DO NOT include any conversational text, explanations, or extra words. ONLY return the requested data in the exact format specified below. ⚠️ Under NO circumstances may the AI output any category that is not verbatim in the tree below.
+📌 Optimized Prompt 003: Strict Category Assignment for BigCommerce
+________________
+
+
+🚀 Step 1 – Categorize the Product Using the SKU & Spec Sheet
+Guidelines
+* ✅ AI MUST categorize the product EXACTLY according to the provided category tree.
+
+* ✅ AI MUST NOT create, modify, infer, or synonym-map categories. Only string-exact matches are valid..
+
+* ✅ AI MUST select the most specific available category that matches the product.
+
+* ✅ AI MAY return one or more categories — if the product clearly belongs in multiple branches.
+
+   * When multiple categories apply, output each full path separated by a semicolon with no spaces (e.g., Path 1;Path 2).
+
+      * ✅ If no valid category is found, AI MUST return: To Be Worked On.
+
+________________
+
+
+🚀 Step 2 – Reference the Approved LightBulbSurplus.com Category Tree
+📌 The AI MUST select a category from the following tree (unchanged):
+<START_TREE>
+Light Bulbs (1)
+    LED (2)
+        LED Tubes (3)
+            T5 LED Tubes (4)
+            T8 LED Tubes (4)
+            U-Bend Tubes (4)
+            8ft LED Tubes (4)
+        LED Reflector Floods (3)
+            LED MR16 Bulbs (4)
+            LED PAR16 Bulbs (4)
+            LED PAR20 Bulbs (4)
+            LED PAR30 Bulbs (4)
+            LED PAR36 Bulbs (4)
+            LED PAR38 Bulbs (4)
+            LED R20 Bulbs (4)
+            LED BR30 Bulbs (4)
+            LED BR40 Bulbs (4)
+        A-Shape LED Bulbs (3)
+        LED Specialty Bulbs (3)
+            LED Color Bulbs (4)
+        Decorative Bulbs (3)
+            Vintage Light Bulbs (4)
+            LED Candelabra (4)
+            LED Chandelier (4)
+            Globe (4)
+            LED Rope Lights (4)
+        LED Retrofit Bulbs (3)
+            High Wattage LED (4)
+            LED Light Engine (4)
+            LED PCB Board Modules (4)
+        Miniature LED Bulbs (3)
+            LED G9 Bulbs (4)
+            LED JC Lamps (4)
+            LED Bayonet (4)
+        LED PL Plug In (3)
+        AR111 (3)
+        LED Sign Bulbs (3)
+        LED Emergency Bulbs (3)
+        LED GU24 Base (3)
+
+
+    Specialty Bulbs (2)
+        Halogen (3)
+        Incandescent Bulbs (3)
+        Krypton/Xenon Bulbs (3)
+        Color Light Bulbs (3)
+        UV Germicidal Light Bulbs (3)
+   
+
+
+
+
+    HID (2)
+        HPS Light Bulbs (3)
+        Metal Halide Light Bulbs (3)
+        Pulse Start Bulbs (3)
+
+
+Fixtures (1)
+    Indoor (2)
+        Recess Lighting (3)
+   
+Parts & Components (1)
+    Ballasts\/Drivers (2)
+    Photocell Sensors (2)
+    Sockets (2)
+    Occupancy Sensors (2)
+
+
+<END_TREE>
+
+
+________________
+
+
+🚀 Step 3 – Categorization Rules
+         * ✅ Strict Matching Only – choose directly from the tree. DO NOT CREATE CATEGORIES.
+         * ✅ Remove Hierarchy Markers – The numbers in parentheses (e.g., (1), (2), (3)) in the reference tree are for hierarchy depth logic only. You MUST strip these numbers and the parentheses from the final output.
+
+         * ✅ Follow the Full Category Path – include every level (no skipping).
+
+            * Example ✅ Light Bulbs/LED/LED Tubes/T8 LED Tubes
+            * Example ❌ Light Bulbs/LED/T8 LED Tubes
+
+               * ✅ Pick the Most Specific Category.
+
+                  * LED HID-replacement lamps → Light Bulbs/LED/LED Retrofit Bulbs/High Wattage LED 
+                  * Recessed housings → Fixtures/Indoor/Recess Lighting.
+                  * Filament / Edison style lamps (keywords: filament, Edison, ST19, ST64, clear-glass, vintage) must also map to Decorative Bulbs/Vintage Light Bulbs in addition to their shape category.
+                  * A shaped lamps 
+
+                     * ✅ Return One or More Categories:
+
+                        * Single category → one path string.
+                        * Multiple categories → Path 1;Path 2;Path 3 (no extra spaces).
+
+                           * ✅ Format Strictly as shown.
+                           * ✅  A-SHAPE DETECTION →  If the SKU, product title, or spec-sheet text contains any classic A-series envelope code  (A10 – A25 **or** metric equivalents A45 / A48 / A53 / A60 / A67 / A73 / A80) then it is an A-Shape bulb and assign it to Light Bulbs/LED/A-Shape LED Bulbs and any other relevant categories
+                           * Acceptable keywords: “A-shape”, “General Service”, “GSL”, “GS lamp”, “pear shape”.    Ignore the match if the same line also references PAR, BR, B-type, G-type, or any non-A envelope.  
+                           * ✅ If no suitable category exists → output To Be Worked On.
+
+________________
+
+
+🚀 Step 4 – Example Inputs & Expected Outputs
+#
+	Example Scenario
+	Output
+	1
+	T8 LED Tube
+SKU 93315883
+	Light Bulbs/LED/LED Tubes/T8 LED Tubes
+	2
+	PAR38 LED Flood
+SKU 45019238
+	Light Bulbs/LED/LED Reflector Floods/LED PAR38 Bulbs
+	3
+	PL LED Plug-In Lamp
+SKU 39279
+	Light Bulbs/LED/LED PL Plug In
+	4
+	Product That Doesn’t Fit
+SKU 991234
+	To Be Worked On
+	5
+	High-Wattage LED Bulb
+SKU lb456/ww
+	Light Bulbs/LED/LED Retrofit Bulbs/High Wattage LED
+	6
+	Filament LED A19 Vintage Bulb
+SKU 774234
+	Light Bulbs/LED/A-Shape LED Bulbs;Light Bulbs/LED/Decorative Bulbs/Vintage Light Bulbs
+	________________
+
+
+🚀 Step 5 – Execution Process
+1️⃣ Analyze SKU & spec-sheet text.
+2️⃣ Cross-reference with the exact category tree above.
+3️⃣ Select the most specific matching category (or categories).
+4️⃣ If multiple legitimate matches exist, output them using semicolon syntax.
+5️⃣ Never modify, add, or invent categories. Check again to make sure category path selected exists on reference category tree.
+6️⃣ If none apply, output To Be Worked On.
+________________
+
+
+🛑 Output Requirements
+                              1. Output must be a single text string (no line breaks).
+
+                              2. No commentary, disclaimers, or explanations.
+
+                              3. Perfect single-category example → Light Bulbs/LED/LED PL Plug In
+
+                              4. Perfect multi-category example → Light Bulbs/LED/A-Shape LED Bulbs;Light Bulbs/LED/Decorative Bulbs/Vintage Light Bulbs
+003A Prompt: FIXTURE Categories
+Extract and format data strictly according to the following guidelines. This output is used for API requests, so DO NOT include any conversational text, explanations, or extra words. ONLY return the requested data in the exact format specified below. ⚠️ Under NO circumstances may the AI output any category that is not verbatim in the tree below.
+📌 Optimized Prompt 003: Strict Fixture Category Assignment for BigCommerce
+🚀 Step 1 – Categorize the Product Using the SKU & Spec Sheet
+Guidelines
+ ✅ AI MUST categorize the product EXACTLY according to the provided category tree.
+✅ AI MUST NOT create, modify, or infer categories beyond what is listed.
+✅ AI MUST select the most specific available category that matches the product.
+✅ AI MAY return one or more categories — if the product clearly belongs in multiple branches.
+When multiple categories apply, output each full path separated by a semicolon with no spaces (e.g., Path 1;Path 2).
+✅ If no valid category is found, AI MUST return: To Be Worked On.
+🚀 Step 2 – Reference the Approved LightBulbSurplus.com Category Tree
+📌 The AI MUST select a category from the following tree (unchanged):
+<START_TREE>
+Fixtures (1)
+    Indoor (2)
+        Flush Mount (3)
+        Semi-Flush Mount (3)
+        Chandeliers (3)
+        Pendant Lights (3)
+        Recess Lighting (3)
+        Decorative Vanity (3)
+        Wall Sconces (3)
+        Track Lighting (3)
+            Track Accessories (4)
+        Undercabinet (3)
+        LED Lay-in Troffers (3)
+            2X2 Square Troffers (4)
+            2X4 Rectangular Troffers (4)
+            1X4 Strip Troffers (4)
+    Outdoor (2)
+        Ceiling (3)
+        Wall Mount (3)
+        Street Lights | Post Mount (3)
+            Architectural Area Lights (4)
+            Acorn Street Lights (4)
+            Round Globe Post Top (4)
+            Pole Mount Fitters (4)
+            Tenon Adapter and Brackets (4)
+        Flood Lights (3)
+        Bollard\/Pathway (3)
+        Security Light Fixtures (3)
+        Stadium Lighting (3)
+        Solar Lights (3)
+        Turtle Friendly Lights (3)
+        Landscape Lighting (3)
+            Pathway & Area Lights (4)
+        Patio String Lights (3)
+    Industrial\/Warehouse (2)
+        High Bays (3)
+            UFO Highbays (4)
+            Linear High Bay (4)
+            High Bay Accessories (4)
+        Vapor Tight (3)
+            2ft Vapor Tight (4)
+            4ft Vapor Tight (4)
+            8ft Vapor Tight (4)
+            Vapor Tight with Emergency (4)
+            Jelly Jar Vaportight (4)
+            Highbay Vaportight (4)
+        Shop Lights LED (3)
+        Explosion Proof (3)
+        Strip Lights and Wraps (3)
+        Temporary Construction Lights (3)
+        Loading Dock Lights (3)
+    Emergency Battery Back Up Lighting (2)
+        LED Exit Signs (3)
+        Emergency Two Head Lights (3)
+        Emergency Decorative Lights (3)
+        Commercial Stairwell Lights (3)
+    Ceiling Fans (2)
+        Ceiling Fan Accessories (3)
+        Indoor (3)
+        Outdoor (3)
+    Lighting Fixture Parts (2)
+    Commercial Grow Lights (2)
+
+
+
+
+
+
+Parts & Components (1)
+    Ballasts\/Drivers (2)
+    Photocell Sensors (2)
+    Sockets (2)
+    Occupancy Sensors (2)
+    Electrical Hardware (2)
+
+
+<END_TREE>
+
+
+🚀 Step 3 – Categorization Rules
+✅ Strict Matching Only – choose directly from the tree.
+✅ Follow the Full Category Path – include every level (no skipping).
+Example ✅ Fixtures/Indoor/LED Lay-in Troffers/2X4 Rectangular Troffers
+Example ❌ Fixtures/Indoor/2X4 Rectangular Troffers
+✅ Remove Hierarchy Markers – The numbers in parentheses (e.g., (1), (2), (3)) in the reference tree are for hierarchy depth logic only. You MUST strip these numbers and the parentheses from the final output.
+✅ Pick the Most Specific Category.
+ Explosion-proof fixtures → Fixtures/Industrial\/Warehouse/Explosion Proof.
+Recessed housings → Fixtures/Indoor/Recess Lighting.
+Dual-rated ceiling fans (keywords: damp-rated, wet-rated, indoor/outdoor) must also map to Fixtures/Ceiling Fans/Indoor and Fixtures/Ceiling Fans/Outdoor.
+✅ Return One or More Categories:
+ Single category → one path string.
+Multiple categories → Path 1;Path 2;Path 3 (no extra spaces).
+✅ Format Strictly as shown.
+ ✅ If no suitable category exists → output To Be Worked On.
+🚀 Step 4 – Example Inputs & Expected Outputs
+#
+	Example Scenario
+	Output
+	1
+	2X4 LED Troffer SKU 224T40
+	Fixtures/Indoor/LED Lay-in Troffers/2X4 Rectangular Troffers
+	2
+	LED Wall Pack with emergency battery Fixture SKU 5621
+	Fixtures/Outdoor/Wall Mount;Fixtures/Emergency Battery Back Up Lighting/Emergency Decorative Lights
+	3
+	Jelly Jar Vapor Tight Fixture SKU JJVT
+	Fixtures/Industrial\/Warehouse/Vapor Tight/Jelly Jar Vaportight
+	4
+	Product That Doesn’t Fit SKU 991234
+	To Be Worked On
+	5
+	4ft Vapor Tight Fixture with Emergency SKU VT4E
+	Fixtures/Industrial\/Warehouse/Vapor Tight/4ft Vapor Tight;Fixtures/Industrial\/Warehouse/Vapor Tight/Vapor Tight with Emergency
+	6
+	Dual-Rated Ceiling Fan SKU CF123
+	Fixtures/Ceiling Fans/Indoor;Fixtures/Ceiling Fans/Outdoor
+	🚀 Step 5 – Execution Process
+1️⃣ Analyze SKU & spec-sheet text.
+2️⃣ Cross-reference with the exact category tree above.
+3️⃣ Select the most specific matching category (or categories).
+4️⃣ If multiple legitimate matches exist, output them using semicolon syntax.
+5️⃣ Never modify, add, or invent categories. Check again to make sure category path selected exists on reference category tree.
+6️⃣ If none apply, output To Be Worked On.
+🛑 Output Requirements
+ Output must be a single text string (no line breaks).
+No commentary, disclaimers, or explanations.
+Perfect single-category example → Fixtures/Outdoor/Flood Lights
+Perfect multi-category example → Fixtures/Ceiling Fans/Indoor;Fixtures/Ceiling Fans/Outdoor
